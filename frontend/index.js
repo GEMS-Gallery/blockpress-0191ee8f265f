@@ -1,49 +1,53 @@
 import { backend } from 'declarations/backend';
 
-let quill;
-
 document.addEventListener('DOMContentLoaded', async () => {
-    quill = new Quill('#editor', {
-        theme: 'snow'
+    const categories = await backend.getCategories();
+    const categoriesContainer = document.getElementById('categories');
+
+    categories.forEach(category => {
+        const categoryElement = document.createElement('div');
+        categoryElement.className = 'category';
+        categoryElement.onclick = () => showPosts(category, categoryElement);
+        categoryElement.innerHTML = `
+            <h2>${category}</h2>
+            <p>${getCategoryDescription(category)}</p>
+        `;
+        categoriesContainer.appendChild(categoryElement);
     });
-
-    const newPostBtn = document.getElementById('new-post-btn');
-    const postForm = document.getElementById('post-form');
-    const postsContainer = document.getElementById('posts');
-
-    newPostBtn.addEventListener('click', () => {
-        postForm.style.display = postForm.style.display === 'none' ? 'block' : 'none';
-    });
-
-    postForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const title = document.getElementById('title').value;
-        const author = document.getElementById('author').value;
-        const body = quill.root.innerHTML;
-
-        await backend.createPost(title, body, author);
-        postForm.reset();
-        quill.setContents([]);
-        postForm.style.display = 'none';
-        await displayPosts();
-    });
-
-    await displayPosts();
 });
 
-async function displayPosts() {
-    const posts = await backend.getPosts();
-    const postsContainer = document.getElementById('posts');
-    postsContainer.innerHTML = '';
+async function showPosts(category, clickedElement) {
+    document.querySelectorAll('.category').forEach(cat => cat.classList.remove('active'));
+    clickedElement.classList.add('active');
 
-    posts.sort((a, b) => b.timestamp - a.timestamp).forEach(post => {
-        const postElement = document.createElement('div');
-        postElement.className = 'post';
-        postElement.innerHTML = `
-            <h2>${post.title}</h2>
-            <div class="post-meta">By ${post.author} on ${new Date(post.timestamp / 1000000).toLocaleString()}</div>
-            <div>${post.body}</div>
+    const posts = await backend.getPosts(category);
+    const postsContainer = document.getElementById('posts');
+    postsContainer.innerHTML = `<h2>${category} Posts</h2>`;
+    
+    posts.forEach(post => {
+        postsContainer.innerHTML += `
+            <div class="post">
+                <h3>${post.title}</h3>
+                <p>${post.body}</p>
+                <div class="post-meta">Posted by ${post.author} on ${new Date(post.timestamp / 1000000).toLocaleString()}</div>
+            </div>
         `;
-        postsContainer.appendChild(postElement);
     });
+}
+
+function createNewPost() {
+    // This function would open a modal or navigate to a new page for post creation
+    alert("Creating a new post... (Functionality not fully implemented)");
+}
+
+function getCategoryDescription(category) {
+    const descriptions = {
+        'Red Team': 'Offensive security tactics and strategies',
+        'Pen Testing': 'Penetration testing methodologies and tools',
+        'Exploit Dev': 'Vulnerability research and exploit development',
+        'Cryptography': 'Encryption, decryption, and cipher discussions',
+        'Social Engineering': 'Human-focused attack techniques',
+        'CTF': 'Capture The Flag challenges and writeups'
+    };
+    return descriptions[category] || '';
 }

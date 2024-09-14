@@ -4,10 +4,12 @@ export const idlFactory = ({ IDL }) => {
     'body' : IDL.Text,
     'author' : IDL.Text,
     'timestamp' : IDL.Int,
+    'category' : IDL.Text,
   });
   return IDL.Service({
-    'createPost' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
-    'getPosts' : IDL.Func([], [IDL.Vec(Post)], ['query']),
+    'createPost' : IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Text], [], []),
+    'getCategories' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+    'getPosts' : IDL.Func([IDL.Text], [IDL.Vec(Post)], ['query']),
   });
 };
 export const init = ({ IDL }) => { return []; };

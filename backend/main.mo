@@ -1,36 +1,38 @@
-import Func "mo:base/Func";
 import Int "mo:base/Int";
-import Text "mo:base/Text";
 
 import Array "mo:base/Array";
 import Time "mo:base/Time";
 import List "mo:base/List";
+import Text "mo:base/Text";
 
 actor {
-  // Define the Post type
   public type Post = {
     title: Text;
     body: Text;
     author: Text;
     timestamp: Int;
+    category: Text;
   };
 
-  // Use a stable variable to store posts
   stable var posts : List.List<Post> = List.nil();
 
-  // Function to create a new post
-  public func createPost(title: Text, body: Text, author: Text) : async () {
+  public func createPost(title: Text, body: Text, author: Text, category: Text) : async () {
     let newPost : Post = {
       title = title;
       body = body;
       author = author;
       timestamp = Time.now();
+      category = category;
     };
     posts := List.push(newPost, posts);
   };
 
-  // Function to get all posts
-  public query func getPosts() : async [Post] {
-    List.toArray(posts)
+  public query func getPosts(category: Text) : async [Post] {
+    let filteredPosts = List.filter<Post>(posts, func(post) { post.category == category });
+    List.toArray(filteredPosts)
+  };
+
+  public query func getCategories() : async [Text] {
+    ["Red Team", "Pen Testing", "Exploit Dev", "Cryptography", "Social Engineering", "CTF"]
   };
 }
