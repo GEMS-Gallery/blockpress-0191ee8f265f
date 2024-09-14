@@ -42,11 +42,12 @@ async function showPosts(category, clickedElement) {
         postsContainer.innerHTML = `<h2>${category} Posts</h2>`;
         
         posts.forEach(post => {
+            const timestamp = Number(BigInt(post.timestamp) / BigInt(1000000));
             postsContainer.innerHTML += `
                 <div class="post">
                     <h3>${post.title}</h3>
                     <p>${post.body}</p>
-                    <div class="post-meta">Posted by ${post.author} on ${new Date(post.timestamp / 1000000).toLocaleString()}</div>
+                    <div class="post-meta">Posted by ${post.author} on ${new Date(timestamp).toLocaleString()}</div>
                 </div>
             `;
         });
