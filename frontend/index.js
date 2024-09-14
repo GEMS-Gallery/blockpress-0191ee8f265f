@@ -1,9 +1,12 @@
 import { backend } from 'declarations/backend';
 
+let currentCategory = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const categories = await backend.getCategories();
         const categoriesContainer = document.getElementById('categories');
+        const categorySelect = document.getElementById('postCategory');
 
         categories.forEach(category => {
             const categoryElement = document.createElement('div');
@@ -14,9 +17,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <p>${getCategoryDescription(category)}</p>
             `;
             categoriesContainer.appendChild(categoryElement);
+
+            // Populate category select in the new post form
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categorySelect.appendChild(option);
         });
 
-        document.getElementById('newPostIcon').addEventListener('click', createNewPost);
+        setupNewPostModal();
     } catch (error) {
         console.error('Error initializing the application:', error);
     }
@@ -26,6 +35,7 @@ async function showPosts(category, clickedElement) {
     try {
         document.querySelectorAll('.category').forEach(cat => cat.classList.remove('active'));
         clickedElement.classList.add('active');
+        currentCategory = category;
 
         const posts = await backend.getPosts(category);
         const postsContainer = document.getElementById('posts');
@@ -45,9 +55,44 @@ async function showPosts(category, clickedElement) {
     }
 }
 
-function createNewPost() {
-    // This function would open a modal or navigate to a new page for post creation
-    alert("Creating a new post... (Functionality not fully implemented)");
+function setupNewPostModal() {
+    const modal = document.getElementById('newPostModal');
+    const newPostIcon = document.getElementById('newPostIcon');
+    const closeBtn = document.getElementsByClassName('close')[0];
+    const newPostForm = document.getElementById('newPostForm');
+
+    newPostIcon.onclick = () => {
+        modal.style.display = 'block';
+    };
+
+    closeBtn.onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    window.onclick = (event) => {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    newPostForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('postTitle').value;
+        const body = document.getElementById('postBody').value;
+        const author = document.getElementById('postAuthor').value;
+        const category = document.getElementById('postCategory').value;
+
+        try {
+            await backend.createPost(title, body, author, category);
+            modal.style.display = 'none';
+            newPostForm.reset();
+            if (currentCategory === category) {
+                await showPosts(category, document.querySelector(`.category:contains('${category}')`));
+            }
+        } catch (error) {
+            console.error('Error creating new post:', error);
+        }
+    };
 }
 
 function getCategoryDescription(category) {
